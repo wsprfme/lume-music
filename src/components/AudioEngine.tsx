@@ -11,14 +11,18 @@ async function resolveStream(track: Track) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ source: 'youtube', nativeId: track.nativeId }),
     });
-    return (await r.json()) as { kind: 'hls' | 'mp3'; url: string };
+    const j = (await r.json()) as { kind: 'hls' | 'mp3'; url: string; error?: string };
+    if (!r.ok || j.error || !j.url) throw new Error(j.error || `stream ${r.status}`);
+    return { kind: j.kind, url: j.url };
   }
   const r = await fetch('/api/stream', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ source: 'soundcloud', transcoding: track.streamHint.url }),
   });
-  return (await r.json()) as { kind: 'hls' | 'mp3'; url: string };
+  const j = (await r.json()) as { kind: 'hls' | 'mp3'; url: string; error?: string };
+  if (!r.ok || j.error || !j.url) throw new Error(j.error || `stream ${r.status}`);
+  return { kind: j.kind, url: j.url };
 }
 
 export function AudioEngine() {
@@ -35,6 +39,8 @@ export function AudioEngine() {
 
   // Pre-resolved next track cache
   const nextTrackResolvedRef = useRef<{ id: string; kind: 'hls' | 'mp3'; url: string } | null>(null);
+  // Consecutive resolve failures (unplayable tracks) — reset on any successful load.
+  const failRef = useRef(0);
 
   const current = usePlayer((s) => s.current);
   const isPlaying = usePlayer((s) => s.isPlaying);
@@ -100,6 +106,7 @@ export function AudioEngine() {
     const onPlaying = () => {
       setBuffering(false);
       setIsPlaying(true);
+      failRef.current = 0;
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     };
     const onPause = () => {
@@ -107,7 +114,24 @@ export function AudioEngine() {
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     };
     const onEnded = () => next();
-    const onError = () => setBuffering(false);
+    const onError = () => {
+      setBuffering(false);
+      // Media element failed (e.g. BE 451 LOGIN_REQUIRED body instead of audio) -> skip.
+      const s = usePlayer.getState();
+      if (s.current?.source === 'youtube' && s.queue.length > 1) {
+        failRef.current += 1;
+        if (failRef.current <= s.queue.length) {
+          import('sonner').then(({ toast }) => {
+            toast.info('Track unavailable, skipping', { duration: 1800 });
+          }).catch(() => {});
+          // Defer so current error state settles before advancing.
+          setTimeout(() => usePlayer.getState().next(), 50);
+        } else {
+          failRef.current = 0;
+          s.setIsPlaying(false);
+        }
+      }
+    };
 
     a.addEventListener('timeupdate', onTime);
     a.addEventListener('loadedmetadata', onMeta);
@@ -229,8 +253,30 @@ export function AudioEngine() {
         if (usePlayer.getState().isPlaying) {
           await a.play().catch(() => {});
         }
+        failRef.current = 0;
       } catch {
         usePlayer.getState().setBuffering(false);
+        // Unplayable (login-walled/deleted/live) -> skip forward instead of stalling.
+        // Guard: never skip more than the queue length in a row.
+        const s = usePlayer.getState();
+        if (s.queue.length > 1) {
+          failRef.current += 1;
+          if (failRef.current <= s.queue.length) {
+            try {
+              const { toast } = await import('sonner');
+              toast.info('Track unavailable, skipping', { duration: 1800 });
+            } catch {}
+            s.next();
+          } else {
+            failRef.current = 0;
+            s.setIsPlaying(false);
+          }
+        } else {
+          try {
+            const { toast } = await import('sonner');
+            toast.error('Track unavailable (may need YouTube sign-in)', { duration: 2500 });
+          } catch {}
+        }
       }
     })();
     return () => {

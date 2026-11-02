@@ -128,8 +128,7 @@ export function SearchView() {
 
   function playPlaylist() {
     if (!pl?.tracks?.length) return;
-    usePlayer.getState().setQueue(pl.tracks, 0);
-    usePlayer.getState().setIsPlaying(true);
+    usePlayer.getState().play(pl.tracks[0], pl.tracks);
     commit(debounced);
   }
 
