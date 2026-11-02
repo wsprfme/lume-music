@@ -21,6 +21,7 @@ export function HomeView() {
 
   const featured = tracks[0];
   const trending = tracks.slice(0, 12);
+  const ytOnly = tracks.filter((t) => t.source === 'youtube');
   const focus = tracks.slice(1, 9);
   const more = tracks.slice(9);
 
@@ -37,6 +38,12 @@ export function HomeView() {
       <Section title="Trending">
         {isLoading ? <TileSkeletons /> : <TileCarousel tracks={trending} />}
       </Section>
+
+      {ytOnly.length > 0 && (
+        <Section title="From YouTube">
+          {isLoading ? <TileSkeletons /> : <TileCarousel tracks={ytOnly.slice(0, 12)} />}
+        </Section>
+      )}
 
       {recents.length > 0 && (
         <Section title="Recently played">

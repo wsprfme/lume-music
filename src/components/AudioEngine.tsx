@@ -5,6 +5,14 @@ import type Hls from 'hls.js';
 import type { Track } from '@/lib/types';
 
 async function resolveStream(track: Track) {
+  if (track.source === 'youtube') {
+    const r = await fetch('/api/stream', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ source: 'youtube', nativeId: track.nativeId }),
+    });
+    return (await r.json()) as { kind: 'hls' | 'mp3'; url: string };
+  }
   const r = await fetch('/api/stream', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

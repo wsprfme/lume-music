@@ -4,6 +4,9 @@
   "functions": {
     "src/app/api/stream/route.ts": { "maxDuration": 15 },
     "src/app/api/search/route.ts": { "maxDuration": 15 },
-    "src/app/api/discover/route.ts": { "maxDuration": 15 }
+    "src/app/api/discover/route.ts": { "maxDuration": 15 },
+    "src/app/api/yt/search/route.ts": { "maxDuration": 15 },
+    "src/app/api/yt/discover/route.ts": { "maxDuration": 15 },
+    "src/app/api/yt/playlist/route.ts": { "maxDuration": 15 }
   }
 }

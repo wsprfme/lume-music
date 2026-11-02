@@ -1,10 +1,12 @@
 'use client';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { Search, X } from 'lucide-react';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { ListMusic, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { RowSkeletons } from '../Skeletons';
 import { TrackRow } from '../TrackRow';
 import type { Track } from '@/lib/types';
+import { isPlaylistUrl, youtubePlaylist } from '@/lib/sources/youtube';
+import { usePlayer } from '@/lib/player-store';
 
 const RECENT_KEY = 'lume:recent-searches';
 const PREFILL_KEY = 'lume:prefill-search';
@@ -112,6 +114,25 @@ export function SearchView() {
 
   const tracks = data ? data.pages.flatMap((page) => page) : [];
 
+  const showPlaylist = isPlaylistUrl(debounced);
+  const {
+    data: pl,
+    isLoading: plLoading,
+    error: plError,
+  } = useQuery({
+    queryKey: ['yt-playlist', debounced],
+    queryFn: () => youtubePlaylist(debounced, 50),
+    enabled: showPlaylist,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  function playPlaylist() {
+    if (!pl?.tracks?.length) return;
+    usePlayer.getState().setQueue(pl.tracks, 0);
+    usePlayer.getState().setIsPlaying(true);
+    commit(debounced);
+  }
+
   function commit(value: string) {
     if (!value) return;
     pushRecent(value);
@@ -138,7 +159,7 @@ export function SearchView() {
           ref={inputRef}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Songs, artists…"
+          placeholder="Songs, artists, or paste YouTube playlist link…"
           className="flex-1 bg-transparent text-[15px] text-ink-50 placeholder:text-ink-500 focus:outline-none"
         />
         {q && (
@@ -152,6 +173,34 @@ export function SearchView() {
           </button>
         )}
       </form>
+
+      {showPlaylist && (
+        <div className="rounded-2xl border border-white/[0.08] bg-paper-2 p-4">
+          {plLoading ? (
+            <div className="text-[13px] text-ink-400">Loading playlist…</div>
+          ) : pl?.tracks?.length ? (
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-black">
+                <ListMusic size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[14px] font-semibold text-white">{pl.title}</div>
+                <div className="text-[12px] text-ink-400">{pl.tracks.length} tracks · YouTube</div>
+              </div>
+              <button
+                onClick={playPlaylist}
+                className="shrink-0 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-black active:scale-[0.98]"
+              >
+                Play
+              </button>
+            </div>
+          ) : (
+            <div className="text-[13px] text-ink-400">
+              {plError ? 'Playlist failed to load.' : 'No tracks found.'}
+            </div>
+          )}
+        </div>
+      )}
 
         {!debounced && (
           <div className="space-y-5">

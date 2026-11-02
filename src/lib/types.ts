@@ -1,4 +1,4 @@
-export type Source = 'soundcloud';
+export type Source = 'soundcloud' | 'youtube';
 
 export interface Track {
   id: string;          // `${source}:${nativeId}`
@@ -9,7 +9,7 @@ export interface Track {
   artistId?: string;
   artwork?: string;
   durationSec: number;
-  /** URL hint for the player. SoundCloud -> hls m3u8 (resolved on demand) */
+  /** URL hint for the player. SoundCloud -> hls/transcoding; YouTube -> videoId (resolved to BE audio proxy) */
   streamHint: { kind: 'mp3' | 'hls' | 'resolve'; url: string };
   permalink?: string;
   playCount?: number;

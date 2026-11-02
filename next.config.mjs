@@ -7,6 +7,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i2.sndcdn.com' },
       { protocol: 'https', hostname: 'a1.sndcdn.com' },
       { protocol: 'https', hostname: 'a-v2.sndcdn.com' },
+      { protocol: 'https', hostname: 'proxy.piped.private.coffee' },
+      { protocol: 'https', hostname: 'i.ytimg.com' },
     ],
   },
   async headers() {
