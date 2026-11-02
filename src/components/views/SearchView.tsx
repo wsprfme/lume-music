@@ -126,10 +126,34 @@ export function SearchView() {
     staleTime: 30 * 60 * 1000,
   });
 
-  function playPlaylist() {
-    if (!pl?.tracks?.length) return;
-    usePlayer.getState().play(pl.tracks[0], pl.tracks);
-    commit(debounced);
+  const [checking, setChecking] = useState(false);
+
+  async function playPlaylist() {
+    if (!pl?.tracks?.length || checking) return;
+    setChecking(true);
+    try {
+      // Probe the first few tracks in parallel so playback starts on a playable
+      // one instead of grinding through blocked videos one by one.
+      const { checkPlayable } = await import('@/lib/sources/youtube');
+      const head = pl.tracks.slice(0, 5);
+      const res = await checkPlayable(head.map((t) => t.nativeId)).catch(() => []);
+      const okSet = new Set(res.filter((r) => r.ok).map((r) => r.id));
+      const idx = head.findIndex((t) => okSet.has(t.nativeId));
+      if (res.length && idx === -1) {
+        const { toast } = await import('sonner');
+        toast.error('No playable tracks in this playlist', { duration: 2500 });
+        return;
+      }
+      const start = idx > 0 ? idx : 0;
+      if (start > 0) {
+        const { toast } = await import('sonner');
+        toast.info(`Skipped ${start} unavailable track${start > 1 ? 's' : ''}`, { duration: 2000 });
+      }
+      usePlayer.getState().play(pl.tracks[start], pl.tracks);
+      commit(debounced);
+    } finally {
+      setChecking(false);
+    }
   }
 
   function commit(value: string) {
@@ -188,9 +212,10 @@ export function SearchView() {
               </div>
               <button
                 onClick={playPlaylist}
-                className="shrink-0 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-black active:scale-[0.98]"
+                disabled={checking}
+                className="shrink-0 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-black active:scale-[0.98] disabled:opacity-60"
               >
-                Play
+                {checking ? 'Checking…' : 'Play'}
               </button>
             </div>
           ) : (

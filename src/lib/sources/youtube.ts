@@ -67,3 +67,12 @@ export async function youtubePlaylist(
   );
   return j;
 }
+
+/** Probe which videoIds are actually playable (parallel, cached). Returns ok ids in order. */
+export async function checkPlayable(ids: string[]): Promise<{ id: string; ok: boolean }[]> {
+  if (!ids.length) return [];
+  const j = await ytGet<{ results: { id: string; ok: boolean }[] }>(
+    `/api/yt/check?ids=${encodeURIComponent(ids.slice(0, 10).join(','))}`
+  );
+  return j.results ?? [];
+}
