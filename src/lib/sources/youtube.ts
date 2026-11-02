@@ -34,7 +34,14 @@ export function isPlaylistUrl(q: string): boolean {
 }
 
 async function ytGet<T>(path: string): Promise<T> {
-  const r = await fetch(path, { cache: 'no-store' });
+  // Server (Route Handler) can't fetch relative URLs — hit engine directly.
+  // Client uses /api/yt/* handlers (cached proxy).
+  const ENGINE = process.env.YT_ENGINE_BASE || 'https://lume-yt.byasaja.my.id';
+  const url =
+    typeof window === 'undefined'
+      ? `${ENGINE}${path.replace(/^\/api\/yt/, '/api')}`
+      : path;
+  const r = await fetch(url, { cache: 'no-store' });
   if (!r.ok) throw new Error(`yt ${r.status}`);
   return r.json() as Promise<T>;
 }
