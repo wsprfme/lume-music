@@ -1,7 +1,5 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { Flame } from 'lucide-react';
 import { HeroTrack } from '../HeroTrack';
 import { HeroSkeleton, RowSkeletons, TileSkeletons } from '../Skeletons';
 import { Section } from '../Section';
@@ -16,13 +14,6 @@ async function fetchDiscover(): Promise<Track[]> {
   return j.tracks ?? [];
 }
 
-const motionProps = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -10 },
-  transition: { type: 'spring', stiffness: 320, damping: 32 },
-} as const;
-
 export function HomeView() {
   const { data, isLoading } = useQuery({ queryKey: ['discover'], queryFn: fetchDiscover });
   const tracks = data ?? [];
@@ -34,8 +25,8 @@ export function HomeView() {
   const more = tracks.slice(9);
 
   return (
-    <motion.div {...motionProps} className="space-y-6 pb-2">
-      <Greeting count={tracks.length} />
+    <div className="space-y-6 pb-2">
+      <Greeting />
 
       {isLoading ? (
         <HeroSkeleton />
@@ -43,12 +34,12 @@ export function HomeView() {
         <HeroTrack track={featured} queue={tracks} />
       ) : null}
 
-      <Section eyebrow="SoundCloud · Trending" title="Hot right now">
+      <Section title="Trending">
         {isLoading ? <TileSkeletons /> : <TileCarousel tracks={trending} />}
       </Section>
 
       {recents.length > 0 && (
-        <Section title="Recently played" eyebrow="Your rotation">
+        <Section title="Recently played">
           <div className="flex flex-col gap-0.5">
             {recents.slice(0, 6).map((t, i) => (
               <TrackRow key={`${t.id}-${i}`} track={t} queue={recents} index={i} />
@@ -57,7 +48,7 @@ export function HomeView() {
         </Section>
       )}
 
-      <Section title="Fresh finds" eyebrow="Single source · SoundCloud">
+      <Section title="Fresh finds">
         {isLoading ? (
           <RowSkeletons rows={6} />
         ) : (
@@ -69,7 +60,7 @@ export function HomeView() {
         )}
       </Section>
 
-      <Section title="Dig deeper">
+      <Section title="More">
         {isLoading ? (
           <RowSkeletons rows={6} />
         ) : (
@@ -80,28 +71,16 @@ export function HomeView() {
           </div>
         )}
       </Section>
-    </motion.div>
+    </div>
   );
 }
 
-function Greeting({ count }: { count: number }) {
+function Greeting() {
   const hour = new Date().getHours();
   const greet = hour < 5 ? 'Late night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   return (
-    <div className="rounded-[24px] glass p-5">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#ffb020]">
-        <Flame size={13} />
-        {count > 0 ? `${count} tracks loaded` : 'SoundCloud only'}
-      </div>
-      <h1 className="mt-2 text-[30px] font-bold leading-[1.05] tracking-tight text-white">
-        {greet}.
-        <span className="ml-2 bg-gradient-to-r from-[#ff5500] via-[#ffb020] to-[#ff2d55] bg-clip-text text-transparent">
-          Feel the ember.
-        </span>
-      </h1>
-      <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-400">
-        One source, zero friction. Pure SoundCloud energy in a warm little player.
-      </p>
+    <div className="pt-1">
+      <h1 className="text-[24px] font-bold tracking-tight text-white">{greet}</h1>
     </div>
   );
 }

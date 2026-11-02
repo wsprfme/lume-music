@@ -1,6 +1,5 @@
 'use client';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { RowSkeletons } from '../Skeletons';
@@ -120,17 +119,10 @@ export function SearchView() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-      className="space-y-5"
-    >
+    <div className="space-y-5">
       <header>
-        <div className="text-[10.5px] uppercase tracking-[0.2em] text-ink-400">Search</div>
-        <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-ink-50">
-          Find your next loop
+        <h1 className="text-[24px] font-bold tracking-tight text-white">
+          Search
         </h1>
       </header>
 
@@ -146,7 +138,7 @@ export function SearchView() {
           ref={inputRef}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Songs, artists, vibes…"
+          placeholder="Songs, artists…"
           className="flex-1 bg-transparent text-[15px] text-ink-50 placeholder:text-ink-500 focus:outline-none"
         />
         {q && (
@@ -154,25 +146,15 @@ export function SearchView() {
             type="button"
             onClick={() => setQ('')}
             aria-label="Clear"
-            className="grid size-7 place-items-center rounded-full text-ink-300 hover:bg-white/10"
+            className="grid size-7 place-items-center rounded-full text-ink-300"
           >
             <X size={14} />
           </button>
         )}
-        <kbd className="hidden rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] text-ink-300 sm:block">
-          /
-        </kbd>
       </form>
 
-      <AnimatePresence mode="wait">
         {!debounced && (
-          <motion.div
-            key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-5"
-          >
+          <div className="space-y-5">
             {recent.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center justify-between">
@@ -182,7 +164,7 @@ export function SearchView() {
                       localStorage.removeItem(RECENT_KEY);
                       setRecent([]);
                     }}
-                    className="text-[11.5px] text-ink-500 hover:text-ink-300"
+                    className="text-[11.5px] text-ink-500"
                   >
                     Clear
                   </button>
@@ -195,7 +177,7 @@ export function SearchView() {
                         setQ(r);
                         commit(r);
                       }}
-                      className="glass-pill rounded-full px-3 py-1.5 text-[12.5px] text-ink-200 hover:bg-white/10"
+                      className="glass-pill rounded-full px-3 py-1.5 text-[12.5px] text-ink-200"
                     >
                       {r}
                     </button>
@@ -204,7 +186,7 @@ export function SearchView() {
               </div>
             )}
             <div>
-              <h4 className="mb-2 text-[13px] font-medium text-ink-300">Try a vibe</h4>
+              <h4 className="mb-2 text-[13px] font-medium text-ink-300">Try</h4>
               <div className="flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s) => (
                   <button
@@ -213,32 +195,26 @@ export function SearchView() {
                       setQ(s);
                       commit(s);
                     }}
-                    className="glass-pill rounded-full px-3 py-1.5 text-[12.5px] text-ink-200 hover:bg-white/10"
+                    className="glass-pill rounded-full px-3 py-1.5 text-[12.5px] text-ink-200"
                   >
                     {s}
                   </button>
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {debounced && isLoading && (
-          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <div>
             <RowSkeletons rows={8} />
-          </motion.div>
+          </div>
         )}
 
         {debounced && !isLoading && (
-          <motion.div
-            key={debounced}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+          <div>
             {tracks.length > 0 ? (
               <>
-                <div className="mb-2 text-[12px] text-ink-400">{tracks.length} results</div>
                 <div className="flex flex-col">
                   {tracks.map((t, i) => (
                     <TrackRow
@@ -257,7 +233,7 @@ export function SearchView() {
                     {isFetchingNextPage ? (
                       <div className="size-5 animate-spin rounded-full border-2 border-white/40 border-t-transparent" />
                     ) : (
-                      <span className="text-[12px] text-ink-400">Scroll down to load more</span>
+                      <span className="text-[12px] text-ink-400">Scroll for more</span>
                     )}
                   </div>
                 )}
@@ -265,18 +241,17 @@ export function SearchView() {
             ) : (
               <Empty q={debounced} />
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
 function Empty({ q }: { q: string }) {
   return (
-    <div className="rounded-3xl px-5 py-10 text-center glass">
-      <div className="text-[15px] text-ink-50">Nothing matched "{q}"</div>
-      <div className="mt-1 text-[13px] text-ink-400">Try fewer words or a different mood.</div>
+    <div className="rounded-3xl border border-white/[0.08] bg-paper-2 px-5 py-10 text-center">
+      <div className="text-[15px] text-white">Nothing matched "{q}"</div>
+      <div className="mt-1 text-[13px] text-ink-400">Try fewer words.</div>
     </div>
   );
 }

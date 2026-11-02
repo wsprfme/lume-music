@@ -1,6 +1,5 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Section } from '../Section';
 import { RowSkeletons, TileSkeletons } from '../Skeletons';
@@ -37,17 +36,10 @@ export function DiscoverView() {
 
   const t = data ?? [];
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <header>
-        <div className="text-[10.5px] uppercase tracking-[0.2em] text-ink-400">Discover</div>
-        <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-ink-50">
-          Browse by mood
+        <h1 className="text-[24px] font-bold tracking-tight text-white">
+          Discover
         </h1>
       </header>
 
@@ -72,11 +64,11 @@ export function DiscoverView() {
         </div>
       </div>
 
-      <Section title="In rotation" eyebrow={MOODS.find((m) => m.key === mood)?.label}>
+      <Section title="Moods">
         {isLoading ? <TileSkeletons /> : <TileCarousel tracks={t.slice(0, 12)} />}
       </Section>
 
-      <Section title="Track list">
+      <Section title="Tracks">
         {isLoading ? (
           <RowSkeletons rows={8} />
         ) : (
@@ -89,10 +81,10 @@ export function DiscoverView() {
       </Section>
 
       {trending && (
-        <Section title="Trending on SoundCloud" eyebrow="What people are loving">
+        <Section title="Trending">
           <TileCarousel tracks={trending.slice(0, 12)} />
         </Section>
       )}
-    </motion.div>
+    </div>
   );
 }

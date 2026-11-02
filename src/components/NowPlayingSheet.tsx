@@ -3,7 +3,6 @@ import { Drawer } from 'vaul';
 import * as Slider from '@radix-ui/react-slider';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import * as Dialog from '@radix-ui/react-dialog';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
   ChevronDown,
   Heart,
@@ -22,7 +21,6 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Artwork } from './Artwork';
-import { SourceBadge } from './SourceBadge';
 import { usePlayer } from '@/lib/player-store';
 import { fmtTime } from '@/lib/format';
 import { tap } from '@/lib/haptics';
@@ -41,7 +39,7 @@ export function NowPlayingSheet() {
       setBackgroundColorOnScale={false}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm" />
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/60" />
         <Drawer.Content
           className="fixed inset-x-0 bottom-0 z-50 flex h-[100dvh] flex-col overflow-hidden bg-paper outline-none"
         >
@@ -73,38 +71,27 @@ function SheetBody() {
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
-      {/* ---- Background: pure gradient driven by extracted palette (no image filter, no blur) ---- */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-0 grain"
-        style={{
-          background:
-            'radial-gradient(110% 70% at 30% 0%, rgb(var(--tint-1) / .45), transparent 60%),\
-             radial-gradient(110% 70% at 80% 25%, rgb(var(--tint-2) / .35), transparent 60%),\
-             linear-gradient(180deg, rgba(8,9,14,.35), rgb(var(--paper)))',
-        }}
-      />
+      {/* ---- Background: flat ---- */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-paper" />
 
       {/* ---- Header: pinned ---- */}
       <div className="relative z-20">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-paper/80 to-transparent" />
         <div className="safe-top flex items-center justify-between px-4 pb-2">
           <Drawer.Close asChild>
             <button
               aria-label="Close"
-              className="grid size-10 place-items-center rounded-full text-ink-100 hover:bg-white/10 active:scale-95 transition"
+              className="grid size-10 place-items-center rounded-full text-ink-100 active:scale-95"
             >
               <ChevronDown size={20} />
             </button>
           </Drawer.Close>
-          <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-200">
-            <span data-on={isPlaying} className="size-1.5 rounded-full bg-tint-1 pulse-dot" />
+          <div className="text-[11px] font-medium tracking-wide text-ink-400">
             Now playing
           </div>
           <button
             onClick={() => setShowQueue(true)}
             aria-label="Queue"
-            className="grid size-10 place-items-center rounded-full text-ink-100 hover:bg-white/10 active:scale-95 transition"
+            className="grid size-10 place-items-center rounded-full text-ink-100 active:scale-95"
           >
             <ListMusic size={18} />
           </button>
@@ -115,26 +102,15 @@ function SheetBody() {
       <div className="relative z-10 mx-auto flex w-full max-w-[440px] flex-1 flex-col justify-between px-5 pt-2 overflow-hidden">
         {/* Artwork Centering Container: flex-1 to occupy all available vertical space */}
         <div className="flex flex-1 min-h-0 items-center justify-center py-4">
-          <motion.div
-            layout
-            initial={{ scale: 0.96, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-            className="relative aspect-square w-full max-h-full max-w-full overflow-hidden rounded-[24px] ring-1 ring-white/10 shadow-glow"
+          <div
+            className="relative aspect-square w-full max-h-full max-w-full overflow-hidden rounded-[24px] ring-1 ring-white/10"
           >
             <Artwork src={current.artwork} alt={current.title} rounded="" />
             <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
-            <AnimatePresence>
-              {!isPlaying && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.35 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-black"
-                />
-              )}
-            </AnimatePresence>
-          </motion.div>
+            {!isPlaying && (
+              <div className="absolute inset-0 bg-black/35" />
+            )}
+          </div>
         </div>
 
         {/* Controls Section: packed together at the bottom */}
@@ -142,13 +118,10 @@ function SheetBody() {
           {/* Title row */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="truncate text-[22px] font-semibold leading-tight tracking-tight text-ink-50">
+              <h1 className="truncate text-[20px] font-bold leading-tight tracking-tight text-white">
                 {current.title}
               </h1>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="truncate text-[14px] text-ink-300">{current.artist}</span>
-                <SourceBadge source={current.source} />
-              </div>
+              <div className="mt-0.5 truncate text-[14px] text-ink-400">{current.artist}</div>
             </div>
             <button
               onClick={() => usePlayer.getState().toggleLike(current)}
@@ -210,24 +183,22 @@ function SheetBody() {
             >
               <SkipBack size={22} fill="currentColor" />
             </button>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            <button
               onClick={() => {
                 tap('medium');
                 usePlayer.getState().toggle();
               }}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="mx-auto grid size-[64px] place-items-center rounded-full bg-white text-paper shadow-glow"
+              className="mx-auto grid size-[64px] place-items-center rounded-full bg-white text-black active:scale-95"
             >
               {buffering ? (
-                <span className="size-5 animate-spin rounded-full border-2 border-paper border-t-transparent" />
+                <span className="size-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
               ) : isPlaying ? (
                 <Pause size={26} fill="currentColor" />
               ) : (
                 <Play size={26} fill="currentColor" className="translate-x-[1px]" />
               )}
-            </motion.button>
+            </button>
             <button
               onClick={() => {
                 tap('light');
@@ -324,14 +295,14 @@ function QueueDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (b: 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md" />
-        <Dialog.Content className="fixed inset-x-0 bottom-0 z-[70] mx-auto max-h-[78dvh] w-full max-w-md overflow-hidden rounded-t-[28px] glass-2 grain ring-soft">
+        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/60" />
+        <Dialog.Content className="fixed inset-x-0 bottom-0 z-[70] mx-auto max-h-[78dvh] w-full max-w-md overflow-hidden rounded-t-[24px] border-t border-white/10 bg-paper-2">
           <Dialog.Title className="sr-only">Up next</Dialog.Title>
           <div className="flex items-center justify-between px-5 py-4">
-            <h3 className="text-[15px] font-semibold text-ink-50">Up next</h3>
+            <h3 className="text-[15px] font-semibold text-white">Up next</h3>
             <span className="text-[11.5px] text-ink-400">{queue.length} tracks</span>
           </div>
-          <div className="hairline" />
+          <div className="h-px bg-white/10" />
           <ScrollArea.Root className="max-h-[64dvh] overflow-hidden">
             <ScrollArea.Viewport className="h-full w-full">
               <div className="flex flex-col gap-1 p-2">
@@ -345,15 +316,15 @@ function QueueDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (b: 
                         usePlayer.getState().play(t, queue);
                         onOpenChange(false);
                       }}
-                      className={`flex items-center gap-3 rounded-2xl px-2.5 py-2.5 text-left border transition-all duration-200 ${
+                      className={`flex items-center gap-3 rounded-2xl px-2.5 py-2.5 text-left ${
                         active
-                          ? 'bg-tint-1/[0.08] border-tint-1/15 text-tint-1 ring-1 ring-tint-1/10'
+                          ? 'bg-white/[0.07] text-white'
                           : upcoming
-                          ? 'border-transparent hover:bg-white/[0.04]'
-                          : 'border-transparent opacity-50 hover:opacity-90'
+                          ? 'text-white'
+                          : 'text-white opacity-50'
                       }`}
                     >
-                      <div className="size-10 overflow-hidden rounded-lg ring-1 ring-white/10">
+                      <div className="size-10 overflow-hidden rounded-lg">
                         <Artwork src={t.artwork} alt={t.title} />
                       </div>
                       <div className="min-w-0 flex-1">

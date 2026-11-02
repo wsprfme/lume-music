@@ -1,6 +1,4 @@
 'use client';
-import { AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AudioEngine } from '@/components/AudioEngine';
@@ -65,54 +63,28 @@ function PageInner() {
   }
 
   return (
-    <main className="relative mx-auto w-full max-w-xl h-[100dvh] flex flex-col overflow-hidden bg-paper select-none sm:px-2">
-      <Aurora />
+    <main className="relative mx-auto flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-paper select-none">
       <AudioEngine />
       <NowPlayingSheet />
       <OfflineBadge />
       <InstallPrompt />
 
-      <header className="relative z-10 flex items-center justify-between px-5 pt-5 pb-1">
-        <div className="flex items-center gap-2.5">
-          <LogoMark size={32} />
-          <div className="leading-none">
-            <div className="text-[16px] font-bold tracking-tight text-ink-50">Lume</div>
-            <div className="mt-0.5 text-[10.5px] uppercase tracking-[0.22em] text-ink-500">Ember Edition</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 rounded-full glass-pill px-3 py-1.5">
-          <span className="relative flex size-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-            <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
-          </span>
-          <span className="text-[11px] font-medium text-ink-300">SoundCloud live</span>
-        </div>
+      <header className="relative z-10 flex items-center gap-2.5 px-4 pt-5 pb-2">
+        <LogoMark size={30} />
+        <div className="text-[16px] font-bold tracking-tight text-ink-50">Lume</div>
       </header>
 
-      <div 
-        className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-4 pt-2 scroll-smooth"
-        style={{ paddingBottom: reserve + 16 }}
+      <div
+        className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-4 pt-1"
+        style={{ paddingBottom: reserve }}
       >
-        <AnimatePresence mode="wait">
-          {tab === 'home' && <HomeView key="home" />}
-          {tab === 'discover' && <DiscoverView key="discover" />}
-          {tab === 'search' && <SearchView key="search" />}
-          {tab === 'liked' && <LikedView key="liked" />}
-        </AnimatePresence>
+        {tab === 'home' && <HomeView key="home" />}
+        {tab === 'discover' && <DiscoverView key="discover" />}
+        {tab === 'search' && <SearchView key="search" />}
+        {tab === 'liked' && <LikedView key="liked" />}
       </div>
 
       <Dock tab={tab} onChange={handleTab} />
     </main>
   );
 }
-
-function Aurora() {
-  return (
-    <div aria-hidden className="aurora">
-      <b />
-      <i />
-      <u />
-    </div>
-  );
-}
-
